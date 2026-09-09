@@ -1,0 +1,24 @@
+{
+  "name": "personal-digital-timeline",
+  "version": "1.0.0",
+  "description": "A personal digital timeline API for tracking projects, learning, goals, milestones, and progress over time, built with Node.js, Express, and PostgreSQL.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adityabhandekar77-dev/personal-digital-timeline.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/adityabhandekar77-dev/personal-digital-timeline/issues"
+  },
+  "homepage": "https://github.com/adityabhandekar77-dev/personal-digital-timeline#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
