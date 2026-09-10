@@ -1,5 +1,7 @@
 const express = require("express");
+const pool = require("./db");
 const timelineRoutes = require("./routes/timelineRoutes");
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
@@ -10,6 +12,8 @@ app.use("/api/timeline", timelineRoutes);
 app.get("/", (req, res)=>{
     res.send("Personal Digital Timeline API");
 })
+
+app.use(errorHandler);
 
 const PORT = 3000;
 
