@@ -1,8 +1,11 @@
 const pool = require("../db");
 
 const getAllEntries = async (req, res) => {
+    const { userId } = req.user;
+
     const result = await pool.query(
-        "SELECT * FROM timeline_entries ORDER BY created_at DESC"
+        "SELECT * FROM timeline_entries WHERE user_id = $1 ORDER BY created_at DESC",
+        [userId]
     );
 
     res.json(result.rows);
@@ -10,12 +13,13 @@ const getAllEntries = async (req, res) => {
 
 const createEntry = async (req, res) => {
     const { title, description, type } = req.body;
+    const { userId } = req.user;
 
     const result = await pool.query(
-        `INSERT INTO timeline_entries (title, description, type, created_at)
-         VALUES ($1, $2, $3, NOW())
+        `INSERT INTO timeline_entries (title, description, type, created_at, user_id)
+         VALUES ($1, $2, $3, NOW(), $4)
          RETURNING *`,
-        [title, description, type]
+        [title, description, type, userId]
     );
 
     res.status(201).json(result.rows[0]);
@@ -23,10 +27,11 @@ const createEntry = async (req, res) => {
 
 const getEntryById = async (req, res) => {
     const { id } = req.params;
+    const { userId } = req.user;
 
     const result = await pool.query(
-        "SELECT * FROM timeline_entries WHERE id = $1",
-        [id]
+        "SELECT * FROM timeline_entries WHERE id = $1 AND user_id = $2",
+        [id, userId]
     );
 
     if (result.rows.length === 0) {
@@ -41,13 +46,14 @@ const getEntryById = async (req, res) => {
 const updateEntry = async (req, res) => {
     const { id } = req.params;
     const { title, description, type } = req.body;
+    const { userId } = req.user;
 
     const result = await pool.query(
         `UPDATE timeline_entries
          SET title = $1, description = $2, type = $3
-         WHERE id = $4
+         WHERE id = $4 AND user_id = $5
          RETURNING *`,
-        [title, description, type, id]
+        [title, description, type, id, userId]
     );
 
     if (result.rows.length === 0) {
@@ -61,10 +67,11 @@ const updateEntry = async (req, res) => {
 
 const deleteEntry = async (req, res) => {
     const { id } = req.params;
+    const { userId } = req.user;
 
     const result = await pool.query(
-        "DELETE FROM timeline_entries WHERE id = $1 RETURNING *",
-        [id]
+        "DELETE FROM timeline_entries WHERE id = $1 AND user_id = $2 RETURNING *",
+        [id, userId]
     );
 
     if (result.rows.length === 0) {
