@@ -15,5 +15,7 @@ router.get("/:id", validateId, asyncHandler(timelineController.getEntryById));
 router.put("/:id", validateId, validateTimelineEntry, asyncHandler(timelineController.updateEntry));
 
 router.delete("/:id", validateId, asyncHandler(timelineController.deleteEntry));
+
+
 module.exports = router;
 
