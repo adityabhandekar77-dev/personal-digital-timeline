@@ -5,6 +5,24 @@ const pool = require("../db");
 let token;
 
 beforeAll(async () => {
+    await pool.query(
+        "DELETE FROM timeline_entries"
+    );
+
+    await pool.query(
+        "DELETE FROM users WHERE email = $1",
+        ["test@example.com"]
+    );
+
+    const registerResponse = await request(app)
+        .post("/api/auth/register")
+        .send({
+            email: "test@example.com",
+            password: "mySecret123"
+        });
+
+    expect(registerResponse.statusCode).toBe(201);
+
     const loginResponse = await request(app)
         .post("/api/auth/login")
         .send({
@@ -12,9 +30,10 @@ beforeAll(async () => {
             password: "mySecret123"
         });
 
+    expect(loginResponse.statusCode).toBe(200);
+
     token = loginResponse.body.token;
 });
-
 test("GET /api/timeline without token returns 401", async () => {
     const response = await request(app)
         .get("/api/timeline");
