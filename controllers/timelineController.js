@@ -2,13 +2,53 @@ const pool = require("../db");
 
 const getAllEntries = async (req, res) => {
     const { userId } = req.user;
+    const { page, limit, type, sort } = req.pagination;
 
-    const result = await pool.query(
-        "SELECT * FROM timeline_entries WHERE user_id = $1 ORDER BY created_at DESC",
-        [userId]
-    );
+    const offset = (page - 1) * limit;
 
-    res.json(result.rows);
+    const sortOrder = sort === "oldest" ? "ASC" : "DESC";
+
+    let query = `
+        SELECT *,
+               COUNT(*) OVER() AS total_count
+        FROM timeline_entries
+        WHERE user_id = $1
+    `;
+
+    const params = [userId];
+
+    if (type) {
+        query += ` AND type = $2`;
+        params.push(type);
+    }
+
+    query += `
+        ORDER BY created_at ${sortOrder}, id ${sortOrder}
+        LIMIT $${params.length + 1}
+        OFFSET $${params.length + 2}
+    `;
+
+    params.push(limit, offset);
+
+    const result = await pool.query(query, params);
+
+    const total = result.rows.length > 0
+        ? Number(result.rows[0].total_count)
+        : 0;
+
+    const totalPages = Math.ceil(total / limit);
+
+    const data = result.rows.map(({ total_count, ...entry }) => entry);
+
+    res.json({
+        data,
+        pagination: {
+            page,
+            limit,
+            total,
+            totalPages
+        }
+    });
 };
 
 const createEntry = async (req, res) => {
