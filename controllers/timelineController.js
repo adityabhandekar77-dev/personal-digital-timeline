@@ -9,12 +9,14 @@ const getAllEntries = async (req, res) => {
     const sortOrder = sort === "oldest" ? "ASC" : "DESC";
 
     let query = `
-        SELECT *,
-               COUNT(*) OVER() AS total_count
-        FROM timeline_entries
-        WHERE user_id = $1
-    `;
-
+    SELECT te.*,
+           COALESCE(ARRAY_AGG(t.name) FILTER (WHERE t.name IS NOT NULL), '{}') AS tags,
+           COUNT(*) OVER() AS total_count
+    FROM timeline_entries te
+    LEFT JOIN entry_tags et ON te.id = et.entry_id
+    LEFT JOIN tags t ON et.tag_id = t.id
+    WHERE te.user_id = $1
+`;
     const params = [userId];
 
     if (type) {
@@ -22,8 +24,9 @@ const getAllEntries = async (req, res) => {
         params.push(type);
     }
 
-    query += `
-        ORDER BY created_at ${sortOrder}, id ${sortOrder}
+   query += `
+    GROUP BY te.id
+    ORDER BY te.created_at ${sortOrder}, te.id ${sortOrder}
         LIMIT $${params.length + 1}
         OFFSET $${params.length + 2}
     `;
@@ -122,6 +125,7 @@ const deleteEntry = async (req, res) => {
 
     res.status(200).json(result.rows[0]);
 };
+
 
 module.exports = {
     getAllEntries,
